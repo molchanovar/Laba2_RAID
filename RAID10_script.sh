@@ -13,4 +13,17 @@ mdadm --detail --scan --verbose | awk '/ARRAY/ {print}' >> /etc/mdadm/mdadm.conf
 cat /proc/mdstat
 mdadm -D /dev/md0
 
+# GPT with 5 parted 
+parted -s /dev/md0 mklabel gpt
+parted /dev/md0 mkpart primary ext4 0% 20%
+parted /dev/md0 mkpart primary ext4 20% 40%
+parted /dev/md0 mkpart primary ext4 40% 60%
+parted /dev/md0 mkpart primary ext4 60% 80%
+parted /dev/md0 mkpart primary ext4 80% 100%
 
+# FiesSystem ext4 on md0
+for i in $(seq 1 5); do sudo mkfs.ext4 /dev/md0p$i; done
+
+# mounted
+ mkdir -p /raid/part{1,2,3,4,5}
+for i in $(seq 1 5); do mount /dev/md0p$i /raid/part$i; done
